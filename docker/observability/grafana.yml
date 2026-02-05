@@ -1,0 +1,42 @@
+services:
+  cadvisor:
+    container_name: cadvisor
+    restart: unless-stopped
+    image: gcr.io/cadvisor/cadvisor:latest
+    ports:
+      - 8080:8080
+    volumes:
+      - /:/rootfs:ro
+      - /var/run:/var/run:rw
+      - /sys:/sys:ro
+      - /var/lib/docker/:/var/lib/docker:ro
+      - /dev/disk/:/dev/disk:ro
+  prometheus:
+    container_name: prometheus
+    restart: unless-stopped
+    image: prom/prometheus
+    ports:
+      - 9090:9090
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+  grafana:
+    container_name: grafana
+    image: grafana/grafana:latest
+    restart: unless-stopped
+    environment:
+      - TERM=linux
+      - GF_PLUGINS_PREINSTALL=grafana-clock-panel,grafana-polystat-panel
+      - GF_SECURITY_DISABLE_INITIAL_ADMIN_CREATION=true
+      - GF_AUTH_ANONYMOUS_ENABLED=true
+      - GF_AUTH_ANONYMOUS_ORG_ROLE=Admin
+      - GF_AUTH_DISABLE_SIGNOUT_MENU=true
+      - GF_AUTH_DISABLE_LOGIN_FORM=true
+    ports:
+      - "3000:3000"
+    volumes:
+      - "grafana_storage:/var/lib/grafana"
+    depends_on:
+      - cadvisor
+      - prometheus
+volumes:
+  grafana_storage: {}
