@@ -1,0 +1,52 @@
+services:
+  booklore:
+    container_name: booklore
+    image: booklore/booklore:latest
+    env_file: .env
+    environment:
+      - USER_ID=${APP_USER_ID}
+      - GROUP_ID=${APP_GROUP_ID}
+      - TZ=${TZ}
+      - DATABASE_URL=${DATABASE_URL}
+      - DATABASE_USERNAME=${DB_USER}
+      - DATABASE_PASSWORD=${DB_PASSWORD}
+      - BOOKLORE_PORT=${BOOKLORE_PORT}
+    ports:
+      - "${BOOKLORE_PORT}:${BOOKLORE_PORT}"
+    volumes:
+      - ./data:/app/data
+      - ./books:/books
+      - ./bookdrop:/bookdrop
+    restart: unless-stopped
+    depends_on:
+      mariadb:
+        condition: service_healthy
+  mariadb:
+    container_name: mariadb
+    image: mariadb:latest
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      # - MARIADB_ROOT_PASSWORD=${MARIADB_ROOT_PASSWORD}
+      # - MARIADB_DATABASE=${MARIADB_DATABASE}
+      # - MARIADB_USER=${MARIADB_USER}
+      # - MARIADB_PASSWORD=${MARIADB_PASSWORD}
+      # - - PUID=${DB_USER_ID}
+      - MARIADB_ALLOW_EMPTY_ROOT_PASSWORD=1
+      - PGID=${DB_GROUP_ID}
+      - TZ=${TZ}
+      - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD}
+      - MYSQL_DATABASE=${MYSQL_DATABASE}
+      - MYSQL_USER=${DB_USER}
+      - MYSQL_PASSWORD=${DB_PASSWORD}
+    ports:
+      - 3306:3306
+    volumes:
+      - mariadb_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mariadb-admin", "ping", "-h", "localhost"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+volumes:
+  mariadb_data:
