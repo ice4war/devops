@@ -23,7 +23,7 @@ services:
           memory: 512M
   wordpress:
     image: wordpress:latest
-    container_name: wordpress
+    #container_name: wordpress
     restart:  unless-stopped
     depends_on:
       - database
